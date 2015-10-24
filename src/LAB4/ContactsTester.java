@@ -1,7 +1,6 @@
 package LAB4;
 
 import java.text.DecimalFormat;
-import java.util.ArrayList;
 import java.util.Scanner;
 
 public class ContactsTester {
@@ -154,14 +153,10 @@ public class ContactsTester {
 
         String name;
         Student[] students;
-        ArrayList<Student> studentsArrayList = new ArrayList<>();
 
         public Faculty(String name, Student[] students) {
             this.name = name;
             this.students = students;
-            for (Student s : students) {
-                studentsArrayList.add(s);
-            }
         }
 
         public int countStudentsFromCity(String cityName) {
@@ -193,16 +188,19 @@ public class ContactsTester {
         }
 
         public Student getStudentWithMostContacts() {
-            studentsArrayList.sort((Student o1, Student o2) -> {
-                if (o1.getSizeOfContactsArray() > o2.getSizeOfContactsArray()) {
-                    return 1;
-                } else if (o1.getSizeOfContactsArray() < o2.getSizeOfContactsArray()) {
-                    return -1;
+            int StudentWithMostContactsIndex = 99;
+            for (int i = 0; i < students.length - 1; i++) {
+                if (students[i].getSizeOfContactsArray() > students[i + 1].getSizeOfContactsArray()) {
+                    StudentWithMostContactsIndex = i;
+                } else if (students[i].getSizeOfContactsArray() < students[i + 1].getSizeOfContactsArray()) {
+                    StudentWithMostContactsIndex = i + 1;
                 } else {
-                    return 0;
+                    StudentWithMostContactsIndex = i;
                 }
-            });
-            return studentsArrayList.get(0);
+
+            }
+            return students[StudentWithMostContactsIndex];
+
         }
 
     }
@@ -216,7 +214,15 @@ public class ContactsTester {
         }
 
         public boolean isNewerThan(Contact c) {
-            return c.date.compareTo(this.date) == 1;
+            int a = this.date.compareTo(c.date);
+            if (a < 0) {
+                return false;
+            } else if (a > 0) {
+                return true;
+            } else {
+                return false;
+            }
+
         }
 
         abstract String getType();
@@ -300,7 +306,9 @@ public class ContactsTester {
         String city;
         int age;
         long index;
-        public ArrayList<Contact> contactsArray;
+
+        Contact[] contactsArrayy;
+        int addedContactsSoFar = 0;
 
         public Student(String firstName, String lastName, String city, int age, long index) {
             this.firstName = firstName;
@@ -308,39 +316,99 @@ public class ContactsTester {
             this.city = city;
             this.age = age;
             this.index = index;
-            contactsArray = new ArrayList<>();
+            contactsArrayy = new Contact[10];
+        }
+
+        private void addContactToContactsArray(Contact c) {
+
+            if (addedContactsSoFar == contactsArrayy.length) {
+                Contact[] temp = new Contact[contactsArrayy.length * 2];
+                for (int i = 0; i < addedContactsSoFar; i++) {
+                    temp[i] = contactsArrayy[i];
+                }
+                temp[addedContactsSoFar] = c;
+                addedContactsSoFar++;
+                contactsArrayy = temp;
+            } else if (addedContactsSoFar < contactsArrayy.length) {
+                contactsArrayy[addedContactsSoFar] = c;
+                addedContactsSoFar++;
+            }
+
         }
 
         public void addEmailContact(String date, String email) {
-            contactsArray.add(new EmailContact(date, email));
+
+            addContactToContactsArray(new EmailContact(date, email));
+
         }
 
         public void addPhoneContact(String date, String phone) {
-            contactsArray.add(new PhoneContact(date, phone));
+            addContactToContactsArray(new PhoneContact(date, phone));
         }
 
         public Contact[] getEmailContacts() {
-            ArrayList<Contact> emailsToReturn = new ArrayList<>();
 
-            for (Contact toCheck : contactsArray) {
-                if (toCheck.getType().equals("email")) {
-                    emailsToReturn.add(toCheck);
+            Contact[] emailContacts = new Contact[0];
+            int countEmailContacts = 0;
+
+            if (addedContactsSoFar == 0) {
+                return emailContacts;
+            } else if (addedContactsSoFar == 1) {
+                if (contactsArrayy[0].getType().equals("email")) {
+                    emailContacts = new Contact[1];
+                    emailContacts[0] = contactsArrayy[0];
+                    return emailContacts;
+                } else {
+                    return emailContacts;
                 }
-            }
-            Contact[] emailsToRe = new Contact[emailsToReturn.size()];
-            emailsToReturn.toArray(emailsToRe);
+            } else if (addedContactsSoFar > 1) {
 
-            return emailsToRe;
+                for (int i = 0; i < addedContactsSoFar; i++) {
+                    if (contactsArrayy[i].getType().equals("email")) {
+                        countEmailContacts++;
+                    }
+                }
+
+                if (countEmailContacts == 0) {
+                    return emailContacts;
+                } else {
+                    int counter = 0;
+                    emailContacts = new Contact[countEmailContacts];
+
+                    for (int i = 0; i < addedContactsSoFar; i++) {
+                        if (contactsArrayy[i].getType().equals("email")) {
+                            emailContacts[counter] = contactsArrayy[i];
+                            counter++;
+                        }
+
+                    }
+                }
+
+            }
+            return emailContacts;
         }
 
         public Contact[] getPhoneContacts() {
-            ArrayList<Contact> phonesToReturn = new ArrayList<>();
-            for (Contact toCheck : contactsArray) {
+            Contact[] phoneContacts;
+            int countPhoneContacts = 0;
+
+            for (Contact toCheck : contactsArrayy) {
                 if (toCheck.getType().equals("phone")) {
-                    phonesToReturn.add(toCheck);
+                    countPhoneContacts++;
                 }
             }
-            return (Contact[]) phonesToReturn.toArray();
+
+            int counter = 0;
+            phoneContacts = new Contact[countPhoneContacts];
+            for (int i = 0; i < contactsArrayy.length; i++) {
+                if (contactsArrayy[i].getType().equals("phone")) {
+                    phoneContacts[counter] = contactsArrayy[i];
+                    counter++;
+                }
+
+            }
+
+            return phoneContacts;
         }
 
         public String getCity() {
@@ -360,8 +428,23 @@ public class ContactsTester {
         }
 
         public Contact getLatestContact() {
-            contactsArray.sort((Contact o1, Contact o2) -> o2.date.compareTo(o1.date));
-            return contactsArray.get(0);
+            int latestContactAddedIndex = 99;
+            if (addedContactsSoFar == 0) {
+                return null;
+            } else if (addedContactsSoFar == 1) {
+                return contactsArrayy[0];
+            } else {
+                for (int i = 0; i < addedContactsSoFar - 1; i++) {
+                    if (contactsArrayy[i].isNewerThan(contactsArrayy[i + 1])) {
+                        latestContactAddedIndex = i;
+                    } else {
+                        latestContactAddedIndex = i + 1;
+                    }
+
+                }
+            }
+
+            return contactsArrayy[latestContactAddedIndex];
         }
 
         public String emailsToJSON() {
@@ -401,7 +484,7 @@ public class ContactsTester {
         }
 
         public int getSizeOfContactsArray() {
-            return contactsArray.size();
+            return addedContactsSoFar;
         }
 
         @Override
