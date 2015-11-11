@@ -278,7 +278,7 @@ public class PhonebookTester {
 
         @Override
         public int compareTo(Contact o) {
-            return o.name.compareTo(this.name);
+            return this.name.compareTo(o.name);
         }
 
     }
