@@ -1,9 +1,8 @@
+package LAB10;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Scanner;
 import java.util.LinkedList;
-import java.util.List;
 
 public class ResizableArrayTest {
 
@@ -158,20 +157,30 @@ public class ResizableArrayTest {
         }
 
         public boolean removeElement(T element) {
-            boolean temp = false;
-            for (int i = 0; i < array.length; i++) {
+            int index = -1;
+            for (int i = 0; i < count; i++) {
                 if (array[i].equals(element)) {
-                    array[i] = null;
-                    temp = true;
-                    count--;
-                    break;
+                    index = i;
                 }
             }
-            return temp;
+            if (index == -1) {
+                return false;
+            } else {
+                T[] temp = (T[]) new Object[count - 1];
+                for (int i = 0; i < index; i++) {
+                    temp[i] = array[i];
+                }
+                for (int i = index + 1; i < count; i++) {
+                    temp[i - 1] = array[i];
+                }
+                count--;
+                array = temp;
+                return true;
+            }
         }
 
         public boolean contains(T element) {
-            for (int i = 0; i < array.length; i++) {
+            for (int i = 0; i < count; i++) {
                 if (array[i].equals(element)) {
                     return true;
                 }
@@ -197,22 +206,77 @@ public class ResizableArrayTest {
         }
 
         public static <T> void copyAll(ResizableArray<? super T> dest, ResizableArray<? extends T> src) {
-            T[] tempArray = (T[]) new Object[dest.count + src.count];
 
-            int destCount = dest.count;
-            int srcCount = src.count;
+            T[] temp = (T[]) new Object[dest.count + src.count];
 
-            for (int i = 0; i < destCount; i++) {
-                tempArray[i] = (T) dest.elementAt(i);
+            int destIndex = dest.count;
+
+            for (int i = 0; i < dest.count; i++) {
+                temp[i] = (T) dest.elementAt(i);
             }
-
-            for (int i = 0; i < srcCount; i++) {
-                tempArray[i + destCount] = src.elementAt(i);
+            for (int i = 0; i < src.count; i++) {
+                temp[destIndex] = src.elementAt(i);
+                destIndex++;
             }
-
+            dest.count = dest.count + src.count;
+            dest.array = temp;
 
         }
 
+        public boolean isEmpty() {
+            return count == 0;
+
+        }
     }
 
+    public static class IntegerArray extends ResizableArray<Integer> {
+
+        public double sum() {
+            double total = 0;
+
+            for (int i = 0; i < this.count; i++) {
+                total += elementAt(i);
+
+            }
+
+            return total;
+        }
+
+        public double mean() {
+            double total = sum();
+            return total / this.count;
+        }
+
+        public int countNonZero() {
+            int counter = 0;
+            for (int i = 0; i < this.count; i++) {
+                if (elementAt(i) != 0) {
+                    counter++;
+                }
+
+            }
+            return counter;
+        }
+
+        public IntegerArray distinct() {
+
+            IntegerArray toRE = new IntegerArray();
+
+            for (int i = 0; i < this.count; i++) {
+                if (!toRE.contains(elementAt(i))) {
+                    toRE.addElement(elementAt(i));
+                }
+            }
+            return toRE;
+        }
+
+        public IntegerArray increment(int offset) {
+            IntegerArray toRE = new IntegerArray();
+            for (int i = 0; i < super.count(); i++) {
+                toRE.addElement(super.elementAt(i) + offset);
+            }
+            return toRE;
+        }
+
+    }
 }
